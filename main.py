@@ -24,8 +24,20 @@ def display_menu():
     print("4. Mark task as completed")
     print("5. Delete a task")
     print("6. Search tasks")
-    print("7. Exit")
+    print("7. Manage categories")
+    print("8. View tasks by category")
+    print("9. Exit")
     print("=======================")
+
+
+def display_category_menu():
+    """Display the category management menu options."""
+    print("\n===== Category Management =====")
+    print("1. View all categories")
+    print("2. Add category to a task")
+    print("3. Remove category from a task")
+    print("4. Back to main menu")
+    print("===============================")
 
 
 def main():
@@ -40,7 +52,7 @@ def main():
         clear_screen()
         display_menu()
         
-        choice = input("\nEnter your choice (1-7): ")
+        choice = input("\nEnter your choice (1-9): ")
         
         if choice == '1':
             # Add a new task
@@ -60,7 +72,18 @@ def main():
             
             due_date = input("Enter due date (YYYY-MM-DD) or leave blank: ")
             
-            task_id = task_manager.add_task(title, description, priority, due_date)
+            # Get categories
+            categories = []
+            add_categories = input("Would you like to add categories? (y/n): ").lower().strip()
+            if add_categories == 'y':
+                print("Enter categories one by one (empty line to finish):")
+                while True:
+                    category = input("Category: ").strip().lower()
+                    if not category:
+                        break
+                    categories.append(category)
+            
+            task_id = task_manager.add_task(title, description, priority, due_date, categories)
             print_colored(f"\nTask added successfully with ID: {task_id}", "green")
         
         elif choice == '2':
@@ -122,6 +145,100 @@ def main():
                 print_colored(f"\nNo tasks found matching '{query}'", "yellow")
         
         elif choice == '7':
+            # Manage categories
+            while True:
+                clear_screen()
+                display_category_menu()
+                category_choice = input("\nEnter your choice (1-4): ")
+                
+                if category_choice == '1':
+                    # View all categories
+                    categories = task_manager.get_all_categories()
+                    if categories:
+                        print("\n=== All Categories ===")
+                        for i, category in enumerate(categories, 1):
+                            print(f"{i}. {category}")
+                    else:
+                        print_colored("\nNo categories found!", "yellow")
+                
+                elif category_choice == '2':
+                    # Add category to a task
+                    task_id = input("Enter task ID: ")
+                    task = task_manager.get_task(task_id)
+                    
+                    if task:
+                        print(f"\nCurrent task: {task}")
+                        category = input("Enter category to add: ").strip().lower()
+                        
+                        if task_manager.add_category_to_task(task_id, category):
+                            print_colored(f"\nCategory '{category}' added to task!", "green")
+                        else:
+                            print_colored(f"\nCategory '{category}' already exists or is invalid!", "yellow")
+                    else:
+                        print_colored("\nTask not found!", "red")
+                
+                elif category_choice == '3':
+                    # Remove category from a task
+                    task_id = input("Enter task ID: ")
+                    task = task_manager.get_task(task_id)
+                    
+                    if task:
+                        print(f"\nCurrent task: {task}")
+                        
+                        if not task.categories:
+                            print_colored("\nThis task has no categories!", "yellow")
+                        else:
+                            print("\nCurrent categories:")
+                            for i, category in enumerate(task.categories, 1):
+                                print(f"{i}. {category}")
+                            
+                            category = input("\nEnter category to remove: ").strip().lower()
+                            
+                            if task_manager.remove_category_from_task(task_id, category):
+                                print_colored(f"\nCategory '{category}' removed from task!", "green")
+                            else:
+                                print_colored(f"\nCategory '{category}' not found!", "yellow")
+                    else:
+                        print_colored("\nTask not found!", "red")
+                
+                elif category_choice == '4':
+                    # Back to main menu
+                    break
+                
+                else:
+                    print_colored("\nInvalid choice! Please enter a number between 1 and 4.", "red")
+                
+                input("\nPress Enter to continue...")
+        
+        elif choice == '8':
+            # View tasks by category
+            categories = task_manager.get_all_categories()
+            
+            if not categories:
+                print_colored("\nNo categories found!", "yellow")
+            else:
+                print("\n=== Available Categories ===")
+                for i, category in enumerate(categories, 1):
+                    print(f"{i}. {category}")
+                
+                try:
+                    index = int(input("\nEnter category number: ")) - 1
+                    if 0 <= index < len(categories):
+                        selected_category = categories[index]
+                        tasks = task_manager.get_tasks_by_category(selected_category)
+                        
+                        if tasks:
+                            print(f"\n=== Tasks in Category '{selected_category}' ===")
+                            for task in tasks:
+                                print(task)
+                        else:
+                            print_colored(f"\nNo tasks found in category '{selected_category}'!", "yellow")
+                    else:
+                        print_colored("\nInvalid category number!", "red")
+                except ValueError:
+                    print_colored("\nPlease enter a valid number!", "red")
+        
+        elif choice == '9':
             # Exit the application
             print_colored("\nSaving tasks and exiting...", "blue")
             task_manager.save_tasks()
@@ -129,7 +246,7 @@ def main():
             sys.exit(0)
         
         else:
-            print_colored("\nInvalid choice! Please enter a number between 1 and 7.", "red")
+            print_colored("\nInvalid choice! Please enter a number between 1 and 9.", "red")
         
         input("\nPress Enter to continue...")
 

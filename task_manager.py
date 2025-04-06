@@ -28,7 +28,7 @@ class TaskManager:
         self.tasks = {}  # Dictionary to store tasks with id as key
         self.storage_file = storage_file
     
-    def add_task(self, title, description, priority=3, due_date=None):
+    def add_task(self, title, description, priority=3, due_date=None, categories=None):
         """
         Add a new task to the task manager.
         
@@ -37,6 +37,7 @@ class TaskManager:
             description (str): The description of the task
             priority (int, optional): Priority level (1-5). Defaults to 3.
             due_date (str, optional): Due date in YYYY-MM-DD format. Defaults to None.
+            categories (list, optional): List of category strings. Defaults to None.
             
         Returns:
             str: The ID of the new task
@@ -49,7 +50,7 @@ class TaskManager:
             raise ValueError("Priority must be an integer between 1 and 5")
         
         # Create and store the task
-        task = Task(title, description, priority, due_date)
+        task = Task(title, description, priority, due_date, categories)
         self.tasks[task.id] = task
         
         # Save the tasks to file
@@ -91,6 +92,72 @@ class TaskManager:
         """
         return [task for task in self.tasks.values() if task.priority == priority]
     
+    def get_tasks_by_category(self, category):
+        """
+        Get tasks with the specified category.
+        
+        Args:
+            category (str): Category to filter by (case insensitive)
+            
+        Returns:
+            list: List of Task objects with the specified category
+        """
+        category = category.lower()  # Make case-insensitive
+        return [task for task in self.tasks.values() if category in task.categories]
+    
+    def get_all_categories(self):
+        """
+        Get all unique categories used across all tasks.
+        
+        Returns:
+            list: Sorted list of unique category strings
+        """
+        # Use a set to collect unique categories
+        categories = set()
+        for task in self.tasks.values():
+            categories.update(task.categories)
+        
+        # Return sorted list
+        return sorted(list(categories))
+    
+    def add_category_to_task(self, task_id, category):
+        """
+        Add a category to a specific task.
+        
+        Args:
+            task_id (str): The ID of the task
+            category (str): The category to add
+            
+        Returns:
+            bool: True if successful, False if task not found or category already exists
+        """
+        task = self.get_task(task_id)
+        if task:
+            result = task.add_category(category)
+            if result:
+                self.save_tasks()
+            return result
+        return False
+    
+    def remove_category_from_task(self, task_id, category):
+        """
+        Remove a category from a specific task.
+        
+        Args:
+            task_id (str): The ID of the task
+            category (str): The category to remove
+            
+        Returns:
+            bool: True if successful, False if task not found or category not found
+        """
+        task = self.get_task(task_id)
+        if task:
+            result = task.remove_category(category)
+            if result:
+                self.save_tasks()
+            return result
+        return False
+    
     def mark_task_completed(self, task_id):
         """
         Mark a task as completed.
@@ -126,7 +193,7 @@ class TaskManager:
     
     def search_tasks(self, query):
         """
-        Search for tasks containing the query in title or description.
+        Search for tasks containing the query in title, description, or categories.
         
         Args:
             query (str): The search query
@@ -139,7 +206,8 @@ class TaskManager:
         
         for task in self.tasks.values():
             if (query in task.title.lower() or 
-                query in task.description.lower()):
+                query in task.description.lower() or
+                any(query in category for category in task.categories)):
                 results.append(task)
         
         return results

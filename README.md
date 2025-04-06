@@ -15,10 +15,11 @@ A simple command-line task management application built in Python. This project 
 ## Features
 
 - Add tasks with title, description, priority level, and due date
-- View all tasks or filter by priority
+- Assign categories/tags to tasks for better organization
+- View all tasks or filter by priority or category
 - Mark tasks as completed
 - Delete tasks
-- Search for tasks
+- Search tasks (searches in title, description, and categories)
 - Persistent storage using JSON
 - Color-coded terminal output
 
@@ -51,20 +52,19 @@ This project demonstrates several key programming concepts:
 - **Object-Oriented Programming**: Using classes to model tasks and their operations
 - **Data Structures**: 
   - Dictionaries for efficient task storage and retrieval by ID
-  - Lists for storing filtered tasks
+  - Lists for storing filtered tasks and categories
   - Custom class for representing task objects
 - **Algorithms**:
   - Sorting tasks by multiple criteria
   - Filtering tasks based on different conditions
-  - Searching through tasks
+  - Searching through tasks and categories
 - **File I/O**: Persistent storage using JSON serialization
 - **Error Handling**: Try-except blocks for robust operation
 - **User Interface**: Simple but effective command-line UI
 
 ## Future Improvements
 
-- Add task categories or tags
 - Implement recurring tasks
 - Add support for notifications
 - Create a simple GUI using Tkinter
-- Add unit tests 
+- Add more advanced filtering options 

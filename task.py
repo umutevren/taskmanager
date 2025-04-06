@@ -21,9 +21,10 @@ class Task:
         created_at (datetime): When the task was created
         due_date (datetime, optional): When the task is due
         completed (bool): Whether the task is completed
+        categories (list): List of categories/tags assigned to the task
     """
     
-    def __init__(self, title, description, priority=3, due_date=None):
+    def __init__(self, title, description, priority=3, due_date=None, categories=None):
         """
         Initialize a new Task object.
         
@@ -32,6 +33,7 @@ class Task:
             description (str): The description of the task
             priority (int, optional): Priority level from 1-5 (1 highest). Defaults to 3.
             due_date (str, optional): Due date in format YYYY-MM-DD. Defaults to None.
+            categories (list, optional): List of categories/tags. Defaults to empty list.
         """
         self.id = str(uuid.uuid4())[:8]  # Generate a shorter unique ID
         self.title = title
@@ -39,6 +41,7 @@ class Task:
         self.priority = priority
         self.created_at = datetime.now()
         self.completed = False
+        self.categories = categories or []  # Default to empty list if None
         
         # Parse the due_date if provided
         self.due_date = None
@@ -65,6 +68,47 @@ class Task:
             
         return datetime.now() > self.due_date
     
+    def add_category(self, category):
+        """
+        Add a category to the task.
+        
+        Args:
+            category (str): The category to add
+            
+        Returns:
+            bool: True if the category was added, False if it already exists
+        """
+        # Make sure category is a string and convert to lowercase for consistency
+        category = str(category).strip().lower()
+        
+        if not category:
+            return False  # Don't add empty categories
+        
+        if category not in self.categories:
+            self.categories.append(category)
+            return True
+            
+        return False  # Category already exists
+    
+    def remove_category(self, category):
+        """
+        Remove a category from the task.
+        
+        Args:
+            category (str): The category to remove
+            
+        Returns:
+            bool: True if the category was removed, False if it wasn't found
+        """
+        # Make sure category is a string and convert to lowercase for consistency
+        category = str(category).strip().lower()
+        
+        if category in self.categories:
+            self.categories.remove(category)
+            return True
+            
+        return False  # Category not found
+    
     def to_dict(self):
         """
         Convert task to dictionary for serialization.
@@ -79,7 +123,8 @@ class Task:
             'priority': self.priority,
             'created_at': self.created_at.isoformat(),
             'due_date': self.due_date.isoformat() if self.due_date else None,
-            'completed': self.completed
+            'completed': self.completed,
+            'categories': self.categories
         }
     
     @classmethod
@@ -98,7 +143,8 @@ class Task:
             title=data['title'],
             description=data['description'],
             priority=data['priority'],
-            due_date=None  # We'll set this manually below
+            due_date=None,  # We'll set this manually below
+            categories=data.get('categories', [])  # Handle legacy data without categories
         )
         
         # Set the remaining attributes
@@ -124,4 +170,10 @@ class Task:
         due_str = f", Due: {self.due_date.strftime('%Y-%m-%d')}" if self.due_date else ""
         overdue = " (OVERDUE!)" if self.is_overdue() else ""
         
-        return f"[{self.id}] {status} {self.title} ({priority_str}){due_str}{overdue}" 
+        # Add categories if they exist
+        category_str = ""
+        if self.categories:
+            categories_formatted = ", ".join(f"#{cat}" for cat in self.categories)
+            category_str = f" [{categories_formatted}]"
+        
+        return f"[{self.id}] {status} {self.title} ({priority_str}){due_str}{overdue}{category_str}" 
